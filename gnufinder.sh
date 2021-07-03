@@ -1,5 +1,29 @@
 #!/bin/bash
 ##               Written by Shawn Roemer
+
+duckloop(){
+                    if [ -n $1 ]; then
+                        set $1  $2
+				            duckducksearch $2
+
+                    elif [ $1 -z ] 
+               echo "You seem to have entered an empty string, DDA doesn't seem to understand those very well at all."
+               echo "Please enter a string and try again or press cntrl-C to exit."
+			   read -r m 
+                set m $2
+               duckloop $2
+                     fi
+}
+
+duckducksearch(){
+          dda $1
+}
+
+searchwiki(){
+   
+			wikit $1 --all --link | less 
+}
+
 if [[ $1 = '--install' ]]; then
                         mkdir ~/bin
                                 chmod 744 ~/bin
@@ -12,7 +36,8 @@ if [[ $1 = '--install' ]]; then
 fi
 if [[ $1 = '--clist' ]] 
 then
-	compgen -c | sort -r
+	compgen -c | sort -r  | uniq | column -s -t
+
 fi
 if [[ $1 = '--groups' ]] ; then 
 	awk -F: '{print $1}' /etc/group 
@@ -229,25 +254,29 @@ if [ $1 = '-f' ]; then
 #
 fi
 if [ $1 = "-d" ]; then
-          dda $2
-		until  [ $1 = 'exit' ]; do
-				echo Would you like to search again? Otherwise Cntrl+C to exit.
-				read -r m 
-				set $2  $m
-				dda $2
-	        done
+                duckducksearch $2
 fi
+                
+		until  [ $1 = 'exit' ]; do
+                 echo Would you like to search again? Otherwise Cntrl+C to exit.
+				 read -r m 
+                  duckloop $m
+
+done
 if [ $1 = '-w' ]; then
 
-			wikit $2 --all --link | less 
+
+        searchwiki $2
+
+	#	wikit $2 --all --link | less 
 		until  [ $1 = 'exit' ]; do
 	
 
 			echo "Would you like to search again? Otherwise cntrl-C to exit."
 			read -r M
                         set $2  $M
-
-			wikit $2 --all --link | less
+                searchwiki  $2
+			#wikit $2 --all --link | less
 		done
 fi
 if [[ $1 = '-rhf' ]]; then
