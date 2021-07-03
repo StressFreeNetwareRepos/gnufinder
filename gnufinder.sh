@@ -12,7 +12,7 @@ if [[ $1 = '--install' ]]; then
 fi
 if [[ $1 = '--clist' ]] 
 then
-	echo $(compgen -c) 
+	compgen -c | sort -r
 fi
 if [[ $1 = '--groups' ]] ; then 
 	awk -F: '{print $1}' /etc/group 
@@ -206,7 +206,8 @@ if [ $1 = '-p' ]; then
 
 fi
 if [ $1 = '-f' ]; then
-     locate -i $2	
+     stat $2
+     locate -i $2 
 	echo "Would you like to do a more intensive search? This may take more time."
 	read -r m
 	if [ $m = 'Y' ]; then 
