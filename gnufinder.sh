@@ -1,18 +1,24 @@
 #!/bin/bash
 ##               Written by Shawn Roemer
-
+if  [ $2 = '-s' ] ; then
+#if [ $2 = '-s' ] || [ $3 = '-s' ] ; then  script -a gnufinder.log 
+#log="yes"
+exec 3>&1 4>&2
+trap 'exec 2>&4 1>&3' 0 1 2 3
+exec 1>gnufinder.log 2>&1
+fi
 duckloop(){
                     if [ -n $1 ]; then
                         set $1  $2
 				            duckducksearch $2
 
-                    elif [ $1 -z ] 
+                    elif [ $1 -z ] ; then
                echo "You seem to have entered an empty string, DDA doesn't seem to understand those very well at all."
                echo "Please enter a string and try again or press cntrl-C to exit."
 			   read -r m 
                 set m $2
                duckloop $2
-                     fi
+            fi
 }
 
 duckducksearch(){
@@ -25,15 +31,18 @@ searchwiki(){
 }
 
 if [[ $1 = '--install' ]]; then
-                        mkdir ~/bin
-                                chmod 744 ~/bin
-                                        touch ~/bin/gnufinder
-						chmod 755 ~/bin/gnufinder
-                                               		 cat -v $0 > ~/bin/gnufinder
-								echo 'export PATH=$PATH:~/bin' >> ~/.bashrc
-   									. ~/.bashrc 
+    if [[ ! -e /usr/bin/gnufinder ]];then  touch /usr/bin/gnufinder ; sleep 1 
+              cp $(which $0) /usr/bin/gnufinder ;  
+    else echo "Gnufinder seems to allready be installed."  ; fi ; fi
+#                        mkdir ~/bin
+#                                chmod 744 ~/bin
+#                                        touch ~/bin/gnufinder
+#						chmod 755 ~/bin/gnufinder
+#                                               		 cat -v $0 > ~/bin/gnufinder
+#								echo 'export PATH=$PATH:~/bin' >> ~/.bashrc
+#   									. ~/.bashrc 
+                      
 
-fi
 if [[ $1 = '--clist' ]] 
 then
 	compgen -c | sort -r  | uniq | column -s -t
@@ -66,7 +75,7 @@ if [ $1 = '--network-adapter' ]; then
 	sudo lshw -C network 
 fi
 if [ $1 = '-a' ]; then
-	echo Your path in a user friendly format
+    echo Your path in a user friendly format
 	echo ------------------------------------------------------------------
         echo $PATH | tr ':' '\n'
 	echo ------------------------------------------------------------------
@@ -255,23 +264,22 @@ if [ $1 = '-f' ]; then
 fi
 if [ $1 = "-d" ]; then
                 duckducksearch $2
-fi
                 
-		until  [ $1 = 'exit' ]; do
+		until  [ $1 = 'close' ]; do
                  echo Would you like to search again? Otherwise Cntrl+C to exit.
 				 read -r m 
                   duckloop $m
 
-done
-if [ $1 = '-w' ]; then
 
+done
+fi
+if [ $1 = '-w' ]; then
 
         searchwiki $2
 
 	#	wikit $2 --all --link | less 
-		until  [ $1 = 'exit' ]; do
+		until  [ $1 = 'close' ]; do
 	
-
 			echo "Would you like to search again? Otherwise cntrl-C to exit."
 			read -r M
                         set $2  $M
@@ -282,23 +290,22 @@ fi
 if [[ $1 = '-rhf' ]]; then
 	    ls .[!.]?*
 fi
-if 
-	[ $1 = '-n' ]; then
-	sudo lsof -Pni 
-	echo ---------------------------------------------------------------------------------------------------
-	netstat $(curl ifconfig.me)
-	echo ---------------------------------------------------------------------------------------------------
+if [ $1 = '-n' ]; then
+    	sudo lsof -Pni 
+	    echo ---------------------------------------------------------------------------------------------------
+	    netstat $(curl ifconfig.me)
+	    echo ---------------------------------------------------------------------------------------------------
 fi
-if [ $1 = '-wb' ]; then	
 
-	wikit $2 -b 
+if [ $1 = '-wb' ]; then	
+    wikit $2 -b 
 fi
-if [ $1 = '-h' ]; then
+
+if [ $1 = '-h' ] || [ $1 = '?' ] || [ $1 = 'help' ] || [ $1 = '-help' ] || [ $1 = 'info' ] || [ $1 = '-?' ] ; then
 	echo
 	echo "usage: gnufinder [option]
 	      -a, all                  display all information available 
-              -sd, devices              displays information about current
-storage devices.
+          -sd, devices             displays information about current storage devices.
 	      -p, path                 displays path in a userfriendly way
 	      -u, user(s)              will display date/time and usr accounts as well as other users. 	      
 	      -f, file(s)              will search from wherever used from on for files matching the given string. Searches recursively and will print the files given after the file as well despite not matching the given string. If given another string after the filename gnufinder will start its search in the given location.
@@ -307,25 +314,31 @@ storage devices.
 	      -n, network              display all current network connections
 	      -e, env                  display enviroment information available
 	      -c, command              will display the script and path of any given command that is written somewhere along the users PATH
-	      --clist, command list  Will list all commands you can run currently 
+	      --clist, command list    Will list all commands you can run currently 
 	      -cpu, cpu                will begin by telling you the number of cores and will ask if you want to display the rest of the information available for your cpu.
 	      -m, memory               will display used and free memory and ask if you would like more detailed information about the memory on your system.
 	      -ip,internet protocol    display internet protocols
 	      -url,                    will display the URL you have or wouldhave. 
 	      -w, wikit 		use wikit to search through wikipedia files. This will initiate wikit with whatever was given for \$2 as the search string. attempts to make wikit a little more user friendly and allows multiple searches. If your search string have multiple results be sure to use j k keys to move up and down and not the arrows. Graphics at this point seem to be buggy but aslong as you use j or k you seem to be able to get the page
 	      -wb, webbrowser	       open wikit in your default browser 
-	      -d, dda 		       Uses the dda command in association with DuckDuckGo to attempt to answer your question. BE SURE TO ENCLOSE THE QUESTION WITH \" \" assuming it has any spaces or special characters or you will only search the first word.
+	      -d, dda 		           Uses the dda command in association with DuckDuckGo to attempt to answer your question. BE SURE TO ENCLOSE THE QUESTION WITH \" \" assuming it has any spaces or special characters or you will only search the first word.
 	      -ps, processes            Displays processes in a tree format
 	      -ft, file tree            Displays all the files on the system in a tree format.
 	      --network-adapter         Displays information on current network adapter.
 	      --groups                  Search for groups on the local machine.
-              --ugroups                 Search more specifically for user
+          --ugroups                 Searches through etc/groups for a given user.
 groups.
-	      --install 		will install gnufinder into current users home directory bin and writes bins path into the .bashrc so gnufinder can be run from the CLI with just gnufinder "
+	      --install 		        Checks if gnufinder exists in /usr/bin/ and if gnufinder isn't found gnufinder will install it'self as a command that can now be with without the suffix .sh and piped around like a regular shell command."
 
         echo 
-	echo "The gnufinder command is an opensource tool created by Shawn Roemer and is still under developement. gnufinder is created in hopes of making it easier to find commonly searched for variables and commands/tools on your linux system and/or over the network."
+	    echo "gnufinder is an opensource tool created by Shawn Roemer and is still under developement. gnufinder is created in hopes of making it easier to find commonly searched for variables and commands/tools on your linux system and/or over the network."
+        echo 
+        echo "Setting the second argument otherwise known as \$2 to -s will redirect all output to a logfile called gnufinder.log as of right now it will create the file in whatever place you run gnufinder but it will ovewrite it'self if you use the feature twice in the same directory." 
 fi
+#if log='yes' ; then 
+#sleep 1
+#exit
+#fi
 
 ##                        GNU GENERAL PUBLIC LICENSE
 ##                        Version 3, 29 June 2007
@@ -1000,5 +1013,3 @@ fi
 ##  the library.  If this is what you want to do, use the GNU Lesser General
 ##  Public License instead of this License.  But first, please read
 ##  <https://www.gnu.org/licenses/why-not-lgpl.html>.
-##  
-##
