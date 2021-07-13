@@ -1,6 +1,6 @@
 #!/bin/bash
 ##               Written by Shawn Roemer
-if  [ $2 = '-s' ] ; then
+if  [[ $2 = '-s' ]] ; then
 #if [ $2 = '-s' ] || [ $3 = '-s' ] ; then  script -a gnufinder.log 
 #log="yes"
 exec 3>&1 4>&2
@@ -8,32 +8,45 @@ trap 'exec 2>&4 1>&3' 0 1 2 3
 exec 1>gnufinder.log 2>&1
 fi
 duckloop(){
-                    if [ -n $1 ]; then
-                        set $1  $2
-				            duckducksearch $2
+    if [ -n $1 ]; then
+        set $1  $2
+            duckducksearch $2
 
-                    elif [ $1 -z ] ; then
-               echo "You seem to have entered an empty string, DDA doesn't seem to understand those very well at all."
-               echo "Please enter a string and try again or press cntrl-C to exit."
-			   read -r m 
-                set m $2
-               duckloop $2
+            elif [ $1 -z ] ; then
+            echo "You seem to have entered an empty string, DDA doesn't seem to understand those very well at all."
+            echo "Please enter a string and try again or press cntrl-C to exit."
+            read -r m 
+            set m $2
+            duckloop $2
             fi
 }
 
 duckducksearch(){
-          dda $1
+    dda $1
 }
 
 searchwiki(){
-   
-			wikit $1 --all --link | less 
+
+    wikit $1 --all --link | less 
 }
 
 if [[ $1 = '--install' ]]; then
-    if [[ ! -e /usr/bin/gnufinder ]];then  touch /usr/bin/gnufinder ; sleep 1 
-              cp $(which $0) /usr/bin/gnufinder ;  
-    else echo "Gnufinder seems to allready be installed."  ; fi ; fi
+if [[ ! -e /usr/bin/gnufinder ]];then sudo touch /usr/bin/gnufinder; sudo chmod 755  /usr/bin/gnufinder  ; sleep 1 
+sudo cp $(which $0) /usr/bin/gnufinder ;  else 
+echo "gnufinder seems to allready be installed. Would you like to change your current gnufinder to this version? (y/n)" 
+until [[ $m = 'y' ]] || [[ $m = 'n' ]] ; do 
+read m
+if [[ $m = 'y' ]] ; then 
+sudo cp $(which $0) /usr/bin/gnufinder ; sudo chmod 755  /usr/bin/gnufinder  
+elif [[ $m = 'n' ]] ; then 
+exit 0
+else 
+echo "Please enter a (y/n) to continue"
+read m
+fi
+done
+fi
+fi
 #                        mkdir ~/bin
 #                                chmod 744 ~/bin
 #                                        touch ~/bin/gnufinder
@@ -41,33 +54,33 @@ if [[ $1 = '--install' ]]; then
 #                                               		 cat -v $0 > ~/bin/gnufinder
 #								echo 'export PATH=$PATH:~/bin' >> ~/.bashrc
 #   									. ~/.bashrc 
-                      
+
 
 if [[ $1 = '--clist' ]] 
 then
-	compgen -c | sort -r  | uniq | column -s -t
+compgen -c | sort -r  | uniq | column -s -t
 
 fi
 if [[ $1 = '--groups' ]] ; then 
-	awk -F: '{print $1}' /etc/group 
+awk -F: '{print $1}' /etc/group 
 fi
 if [[ $1 = '--ugroups' ]] ; then 
-	awk -F: '$3 > 1000' /etc/group
+awk -F: '$3 > 1000' /etc/group
 fi
 if [[ $1 = '-sd' ]]; then 
-	sudo lshw -short | grep dev 
-	# lsblk -p
+sudo lshw -short | grep dev 
+# lsblk -p
 fi
 if [[ $1 = '-ft' ]]; then
-               tree /
+tree /
 fi	       
 if [[ $1 = '-ps' ]]; then
-               pstree
+pstree
 fi	       
-	if [ -z $1 ]; then
 
-		echo gnufinder v1.1 \(gnulinuxstuffz.com\)
-		echo Please enter gnufinder -h to list all possible arguments.
+    if [ -z $1 ]; then
+echo gnufinder v1.1 \(gnulinuxstuffz.com\)
+    echo Please enter gnufinder -h to list all possible arguments.
 	        echo gnufinder will require at least one argument.
                 exit 1
 	fi
@@ -123,7 +136,7 @@ if [ $1 = '-a' ]; then
 	echo -------------------------------------------------------------------
 	echo Current free disk space.
 	echo ------------------------------------------------------------------
-	df 
+	df -ah
 	echo ------------------------------------------------------------------
 	echo Current free memory.
 	echo ------------------------------------------------------------------
@@ -156,7 +169,7 @@ fi
 if [ $1 = '-m' ]; then
 	echo Current free disk space.
 	echo ------------------------------------------------------------------
-	df 
+	df -ah
 	echo ------------------------------------------------------------------
 	echo Current free memory.
 	echo ------------------------------------------------------------------
@@ -244,11 +257,11 @@ if [ $1 = '-f' ]; then
      locate -i $2 
 	echo "Would you like to do a more intensive search? This may take more time."
 	read -r m
-	if [ $m = 'Y' ]; then 
-		find / -name "*$2*" 
+	if [[ $m = 'Y' ]]; then 
+		sudo find / -name "*$2*" 
 	fi
-	if [ $m = 'y' ]; then 
-		find / -name "*$2*" 
+	if [[ $m = 'y' ]]; then 
+		sudo find / -name "*$2*" 
 	fi
 #     echo Would you like to display in a tree format? 
 #     read -r m 
@@ -326,16 +339,20 @@ if [ $1 = '-h' ] || [ $1 = '?' ] || [ $1 = 'help' ] || [ $1 = '-help' ] || [ $1 
 	      -ft, file tree            Displays all the files on the system in a tree format.
 	      --network-adapter         Displays information on current network adapter.
 	      --groups                  Search for groups on the local machine.
-          --ugroups                 Searches through etc/groups for a given user.
-groups.
-	      --install 		        Checks if gnufinder exists in /usr/bin/ and if gnufinder isn't found gnufinder will install it'self as a command that can now be with without the suffix .sh and piped around like a regular shell command."
+              --ugroups                 Searches through etc/groups for a given user.
+	      --install 	        Checks if gnufinder exists in /usr/bin/ and if gnufinder isn't found gnufinder will install it'self as a command that can now be with without the suffix .sh and piped around like a regular shell command."
 
         echo 
 	    echo "gnufinder is an opensource tool created by Shawn Roemer and is still under developement. gnufinder is created in hopes of making it easier to find commonly searched for variables and commands/tools on your linux system and/or over the network."
         echo 
         echo "Setting the second argument otherwise known as \$2 to -s will redirect all output to a logfile called gnufinder.log as of right now it will create the file in whatever place you run gnufinder but it will ovewrite it'self if you use the feature twice in the same directory." 
+        echo 
+        echo
+        echo awknowledgements: https://github.com/StressFreeNetwareRepos #formerly known as Hiatichiro
+        echo Shawn M Roemer, sroemer97@stressfreenetware.biz
 fi
 #if log='yes' ; then 
+
 #sleep 1
 #exit
 #fi
